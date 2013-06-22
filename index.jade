@@ -39,7 +39,7 @@ html
 
         .fake-service-manager
           ul.service-list.unstyled
-            li.service-info.row
+            li.service-info
               a(href="#")
                 h4 wikifier
 
@@ -105,33 +105,18 @@ html
                   | &nbsp;
                   button(type="button").btn.btn-danger.pull-right
                     | Delete
-      
+
     //- Templates!
-    script(type="text/html")#tmServiceListItem
-      a(href="#expand")
-        h4
+    script(type="text/html")#tServiceListItem
+      a(href="#", data-name="{{name}}").row
+        h4.span6
           | {{name}}
+        .service-controls.btn-group.span3
+          button(type="button").btn.btn-link Edit
+          button(type="button").btn.btn-link Test
 
-    script(type="text/html")#tmNill
-      p herp
-
-    script(type="text/html")#tmIndefiniteLoading
+    script(type="text/html")#tIndefiniteLoading
       h3 {{ title }}
       .progress.progress-striped.active
         div(style="width: 100%").bar
-
-    //-
-      dl.dl-horizontal
-        dt Name
-        dd
-          input(value="wikifier")
-
-        dt URL
-        dd(contenteditable) http://localhost
-
-        dt Document parameter
-        dd Use default | <span contenteditable>herp</span>
-
-        dt Application parameter
-        dd Use default | <span contenteditable>herp</span>
 

@@ -49,18 +49,19 @@ ServiceListView = Backbone.View.extend
   removeElement: (service, _collection, _sync) ->
     name = service.get 'name'
     view = @trackedViews[name]
-    view.remove()
     delete @trackedViews[name]
+    view.remove()
 
   initialize: ->
     @listenTo @collection, "add", @addElement
+    @listenTo @collection, "remove", @removeElement
 
 
 # Views a Service for info at a glance.
 ServiceInfoView = Backbone.View.extend
   tagName: 'li'
   # Use Bootstrap rows.
-  className: 'service-info row'
+  className: 'service-info'
 
   initialize: ->
     @render()
@@ -68,7 +69,7 @@ ServiceInfoView = Backbone.View.extend
 
   render: ->
     # Replace the element's HTML with the rendered template
-    rendered = ich.tmServiceListItem @model.attributes
+    rendered = ich.tServiceListItem @model.attributes
     @$el.html rendered
 
     @
@@ -91,7 +92,7 @@ serviceManager = (elem) ->
   serviceList = new ServiceListView { collection: wsmanager }
 
   # Download the service list via AJAX.
-  $elem.html ich.tmIndefiniteLoading { title: 'Loading services...' }
+  $elem.html ich.tIndefiniteLoading { title: 'Loading services...' }
   #jqxhr = wsmanager.sync 'read', wsmanager
   jqxhr = wsmanager.fetch()
 

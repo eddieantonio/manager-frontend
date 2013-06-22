@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "jquery": "~2.0",
+        "bootstrap": "*",
+        "bootstrap-javascript": "*",
+        "backbone-amd": "*",
+        "underscore-amd": "*",
+        "https://github.com/HenrikJoreteg/ICanHaz.js.git": "*"
+    }
+}
