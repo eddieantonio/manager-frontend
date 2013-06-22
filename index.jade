@@ -13,21 +13,14 @@ html
     //- Bootstrap!
     if TEMPLATE_DEBUG
       link(rel="stylesheet/less", type="text/css", href=SDIR + "/styles.less")
+      script(src=VDIR + "/less.js")
     else
       link(rel="stylesheet", type="text/css", href=SDIR + "/styles.css")
 
-    //- Libraries!
-    script(src=VDIR + "/jquery.js")
-    script(src=VDIR + "/underscore.js")
-    script(src=VDIR + "/backbone.js")
-    script(src=VDIR + "/ICanHaz.js")
-    script(src=VDIR + "/bootstrap.js")
-
-    if TEMPLATE_DEBUG
-      script(src=VDIR + "/less.js")
-
     //- Service manager!
-    script(src=SDIR + "/js/main.js")
+    script(src=SDIR + "/bower/requirejs/require.js",
+      data-main=SDIR + "/js/main")
+    script(src=SDIR + "/js/config.js")
 
   body
 
