@@ -1,0 +1,137 @@
+- var SDIR = '/static'; // static directory
+- var VDIR = SDIR + '/vendor' // vendor directory
+!!!
+html
+  head
+    meta(charset="UTF-8")
+
+    title Service Manager
+
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+    //- Bootstrap!
+    //link(rel="stylesheet", href=VDIR + "/bootstrap.css")
+    //link(rel="stylesheet/less", type="text/css", href=SDIR + "/styles.less")
+    link(rel="stylesheet", type="text/css", href=SDIR + "/styles.css")
+
+    //- Libraries!
+    script(src=VDIR + "/jquery.js")
+    script(src=VDIR + "/underscore.js")
+    script(src=VDIR + "/backbone.js")
+    script(src=VDIR + "/ICanHaz.js")
+    script(src=VDIR + "/bootstrap.js")
+    //script(src=VDIR + "/less.js")
+
+    //- Service manager!
+    script(src=SDIR + "/js/main.js")
+
+  body
+
+    .container
+
+      header.page-header
+        h1 Service Manager
+        p.lead
+          | Manage the web services that process documents.
+
+      article
+        .service-manager
+
+        .fake-service-manager
+          ul.service-list.unstyled
+            li.service-info.row
+              a(href="#")
+                h4 wikifier
+
+              form.service-edit.form-horizontal.well
+
+                //- Name
+                .control-group
+                  label.control-label Name
+                  .controls
+                    input(value="wikifier", type="text").input-xlarge
+                    //
+                      .help-inline Name already exists!
+
+                //- URL
+                .control-group
+                  label.control-label URL
+                  .controls
+                    input(value="http://localhost", type="text").input-xlarge
+
+                //- Method
+                .control-group
+                  label.control-label Method
+                  .controls
+                    div(data-toggle="buttons-radio").btn-group
+                      button(type="button").btn.active POST
+                      button(type="button").btn GET
+
+                //- doc param
+                .control-group
+                  label.control-label Document parameter
+                  .controls.control-row
+                    .input-append
+                      input(value="id", type="text").input-mini
+                      button(type='button').btn.btn-inverse Use Default
+                    span.help-block
+                      | The parameter that the manager will use to send the
+                      | ID of one Ludicrous document.
+
+                //- app param
+                .control-group
+                  label.control-label Application parameter
+                  .controls.control-row
+                    .input-append
+                      input(value="app", type="text").input-mini
+                      button(type='button').btn.btn-inverse Use Default
+                    span.help-block
+                      | The parameter that the manager will use to send the
+                      | name of an entire Ludicrous application.
+
+                //- Extra parameters
+                .control-group
+                  label.control-label Extra parameters
+                  .controls.control-row
+                    input(type="text", data-params)
+
+                .form-actions
+                  button(type="submit").btn.btn-primary
+                    //i.icon-ok
+                    | Save
+                  | &nbsp;
+                  button(type="button").btn
+                    | Cancel
+                  | &nbsp;
+                  button(type="button").btn.btn-danger.pull-right
+                    | Delete
+      
+    //- Templates!
+    script(type="text/html")#tmServiceListItem
+      a(href="#expand")
+        h4
+          | {{name}}
+
+    script(type="text/html")#tmNill
+      p herp
+
+    script(type="text/html")#tmIndefiniteLoading
+      h3 {{ title }}
+      .progress.progress-striped.active
+        div(style="width: 100%").bar
+
+    //-
+      dl.dl-horizontal
+        dt Name
+        dd
+          input(value="wikifier")
+
+        dt URL
+        dd(contenteditable) http://localhost
+
+        dt Document parameter
+        dd Use default | <span contenteditable>herp</span>
+
+        dt Application parameter
+        dd Use default | <span contenteditable>herp</span>
+
