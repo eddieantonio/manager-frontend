@@ -7,12 +7,12 @@
 define (require) ->
   # Libaries needed, by name.
   $ = require 'jquery'
-  _ = require 'underscore-amd'
   Backbone = require 'backbone-amd'
 
 
   # Need to use its global...
-  require 'icanhaz'
+  require 'icanhaz'         # ich
+  require 'underscore-amd'  # _
   
   # Libraries that should just exist on the page.
   require 'bootstrap-javascript'
@@ -69,6 +69,29 @@ define (require) ->
       @listenTo @collection, "add", @addElement
       @listenTo @collection, "remove", @removeElement
 
+
+
+  # Helper to create a control group from the named template.
+  makeControlGroup = (label, controlName, options={}, extraClasses="") ->
+    # Create a unique ID so that the label points to the input.
+    inputID = _.uniqueId 'cnt-'
+    options.genID = inputID
+
+    controlTemplate = ich[controlName]
+    controlHTML = controlTemplate options
+
+    console.log controlHTML
+    window.herp = controlHTML
+
+    # Hack to make the jQuery template into a string.
+    controlAsString = $('<div>').html(controlHTML).html()
+
+    ich.tFormControlGroup
+      labelHTML: label
+      inputFor: inputID
+      controls: controlAsString
+      extraClasses
+      
 
   # Views a Service for info at a glance.
   ServiceInfoView = Backbone.View.extend
@@ -123,5 +146,11 @@ define (require) ->
   # On Document ready...
   $ ->
     # Install the service manager in its element.
-    serviceManager $ '.service-manager'
+    #serviceManager $ '.service-manager'
+
+    # Test the helper function
+    fakeControl = makeControlGroup 'Label!', 'tSimpleTextBoxControl',
+      name: 'txtbx'
+      placeholder: 'Text box!'
+    $('article').append fakeControl
     
