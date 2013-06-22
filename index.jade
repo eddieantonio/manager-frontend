@@ -1,5 +1,6 @@
 - var SDIR = '/static'; // static directory
-- var VDIR = SDIR + '/vendor' // vendor directory
+- var VDIR = SDIR + '/vendor'; // vendor directory
+- var TEMPLATE_DEBUG = false;
 !!!
 html
   head
@@ -10,9 +11,10 @@ html
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
     //- Bootstrap!
-    //link(rel="stylesheet", href=VDIR + "/bootstrap.css")
-    //link(rel="stylesheet/less", type="text/css", href=SDIR + "/styles.less")
-    link(rel="stylesheet", type="text/css", href=SDIR + "/styles.css")
+    if TEMPLATE_DEBUG
+      link(rel="stylesheet/less", type="text/css", href=SDIR + "/styles.less")
+    else
+      link(rel="stylesheet", type="text/css", href=SDIR + "/styles.css")
 
     //- Libraries!
     script(src=VDIR + "/jquery.js")
@@ -20,7 +22,9 @@ html
     script(src=VDIR + "/backbone.js")
     script(src=VDIR + "/ICanHaz.js")
     script(src=VDIR + "/bootstrap.js")
-    //script(src=VDIR + "/less.js")
+
+    if TEMPLATE_DEBUG
+      script(src=VDIR + "/less.js")
 
     //- Service manager!
     script(src=SDIR + "/js/main.js")
@@ -100,6 +104,9 @@ html
                     //i.icon-ok
                     | Save
                   | &nbsp;
+                  button(type="button").btn.btn-success
+                    | Test
+                  | &nbsp;
                   button(type="button").btn
                     | Cancel
                   | &nbsp;
@@ -108,12 +115,9 @@ html
 
     //- Templates!
     script(type="text/html")#tServiceListItem
-      a(href="#", data-name="{{name}}").row
-        h4.span6
+      a(href="#", data-name="{{name}}")
+        h4
           | {{name}}
-        .service-controls.btn-group.span3
-          button(type="button").btn.btn-link Edit
-          button(type="button").btn.btn-link Test
 
     script(type="text/html")#tIndefiniteLoading
       h3 {{ title }}
