@@ -1,4 +1,4 @@
-# Services front-end
+# Service manager front-end
 # ALL IN ONE FILE!
 # Author: Eddie Antonio Santos <easantos@ualberta.ca>
 
@@ -13,14 +13,17 @@ define (require) ->
   # Need to use its global...
   require 'icanhaz'         # ich
   require 'underscore-amd'  # _
-  
+
   # Libraries that should just exist on the page.
   require 'bootstrap-javascript'
-  
+
+
+
   # The Service: the main model of this application.
   Service = Backbone.Model.extend
     # Services use 'name' as its ID attribute
     idAttribute: 'name'
+
     # These are a service's defaults.
     # Note that 'name' must be changed before initial save.
     defaults:
@@ -31,20 +34,37 @@ define (require) ->
       documentIDParameter: 'id'
       applicationParameter: 'app'
 
+    # Check that the name is proper.
+    validate: (attributes, options) ->
+      'invalid name' unless attributes.name.match Service.nameValidationRegex
+  ,
+    # Basically, match a slug from 1 to 24 characters long.
+    nameValidationRegex: /^[a-z][a-z0-9\-_]{0,23}$/
+
+
 
   # WSManager collects all of the services.
   WSManager = Backbone.Collection.extend
     model: Service
     url: '/WSManager'
 
-  
+    # Parse the object received from the server into a list of services.
+    parse: (response) ->
+      serviceList = _(response).map (partialService, name) ->
+        service = _.clone partialService
+        # The keys should become the 'name' attribute.
+        service.name = name
+        service
+
+
+
 
   # Views a WSManager collection as a list.
   ServiceListView = Backbone.View.extend
     tagName: 'ul'
     className: 'service-list unstyled'
 
-    # Keep a list of services
+    # Track a list of services
     trackedViews: {}
 
     # Add an element to the tracked view.
@@ -69,29 +89,14 @@ define (require) ->
       @listenTo @collection, "add", @addElement
       @listenTo @collection, "remove", @removeElement
 
+
+
+  # Views a Service, with hooks to edit it.
+  ServiceEditView = Backbone.View.extend
+    initialize: ->
+      console.log 'not implemented'
+
 
-
-  # Helper to create a control group from the named template.
-  makeControlGroup = (label, controlName, options={}, extraClasses="") ->
-    # Create a unique ID so that the label points to the input.
-    inputID = _.uniqueId 'cnt-'
-    options.genID = inputID
-
-    controlTemplate = ich[controlName]
-    controlHTML = controlTemplate options
-
-    console.log controlHTML
-    window.herp = controlHTML
-
-    # Hack to make the jQuery template into a string.
-    controlAsString = $('<div>').html(controlHTML).html()
-
-    ich.tFormControlGroup
-      labelHTML: label
-      inputFor: inputID
-      controls: controlAsString
-      extraClasses
-      
 
   # Views a Service for info at a glance.
   ServiceInfoView = Backbone.View.extend
@@ -110,7 +115,28 @@ define (require) ->
 
       @
 
-  
+
+
+  # Converts template returned by ich into a string.
+  templateToString = (template) -> $('<div>').html(template).html()
+
+  # Helper to create a control group from the named template.
+  makeControlGroup = (label, controlName, options={}, extraClasses="") ->
+    # Create a unique ID so that the label points to the input.
+    inputID = _.uniqueId 'cnt-'
+    options.genID = inputID
+
+    controlTemplate = ich[controlName]
+    controlHTML = controlTemplate options
+
+    # Hack to make the jQuery template into a string.
+    controlAsString = templateToString controlHTML
+
+    ich.tFormControlGroup
+      labelHTML: label
+      inputFor: inputID
+      controls: controlAsString
+      extraClasses
 
   # Install the service manager on an element.
   serviceManager = (elem) ->
@@ -141,16 +167,10 @@ define (require) ->
     jqxhr.fail (_, textStatus) ->
       $elem.text "Error! Status #{textStatus}."
 
-  
+
 
   # On Document ready...
   $ ->
     # Install the service manager in its element.
-    #serviceManager $ '.service-manager'
+    serviceManager $ '.service-manager'
 
-    # Test the helper function
-    fakeControl = makeControlGroup 'Label!', 'tSimpleTextBoxControl',
-      name: 'txtbx'
-      placeholder: 'Text box!'
-    $('article').append fakeControl
-    

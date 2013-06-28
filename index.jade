@@ -2,7 +2,7 @@
 - var VDIR = SDIR + '/vendor'; // vendor directory
 - var TEMPLATE_DEBUG = false;
 !!!
-html
+html(lang="en_US")
   head
     meta(charset="UTF-8")
 
@@ -34,18 +34,28 @@ html
       article
         .service-manager
 
-        .fake-service-manager
-          ul.service-list.unstyled
-            li.service-info
-              a(href="#")
-                h4 wikifier
+
+    script(type="text/html")#tModal
+      .modal.hide#modal
+        .modal-header
+          button(type="button", class="close",
+            data-dismiss="modal", aria-hidden="true") &times;
+          h3 {{title}}
+        .modal-body
+        .modal-footer
+          a(data-dismiss="modal").btn {{okayText}}
 
     //- Templates!
+
+    //- Service list element.
     script(type="text/html")#tServiceListItem
-      a(href="#", data-name="{{name}}")
+      a(href="\#{{name}}/edit", data-name="{{name}}")
         h4
           | {{name}}
+        p.muted
+          | {{url}}
 
+    //- Loading box.
     script(type="text/html")#tIndefiniteLoading
       h3 {{ title }}
       .progress.progress-striped.active
@@ -87,36 +97,40 @@ html
           type="text", placeholder="{{placeholder}}").input-mini
         button(type='button',
           data-default="{{defaultValue}}").btn.btn-inverse Use Default
+      | {{#helpText}}
       span.help-block {{helpText}}
+      | {{/helpText}}
 
     //-
-      {{name}}          Name of the parameter
-      {{genID}}         Generated ID for the input
       {{options}}       Options available.
       {{id}}              Identify the selection
       {{text}}            Display text
-    script(type="text/html")#tToggleButton
+    script(type="text/html")#tToggleButtonControl
       div(data-toggle="buttons-radio").btn-group
         | {{#options}}
-        button(type="button", data-option="{{id}}").btn.active {text}}
+        button(type="button",
+          class="btn{{#active}} active{{/active}}",
+          data-option="{{id}}") {{text}}
         | {{/options}}
-
 
     //- No weird templating here, baus!
     script(type="text/html")#tServiceEditActions
-        button(type="submit").btn.btn-primary
-          | Save
-        | &nbsp;
-        button(type="button").btn.btn-success
-          | Test
-        | &nbsp;
-        button(type="button").btn
-          | Cancel
-        | &nbsp;
-        button(type="button").btn.btn-danger.pull-right
-          | Delete
+      button(type="submit").btn.btn-primary
+        | Save
+      | &nbsp;
+      button(type="button").btn.btn-success
+        | Test
+      | &nbsp;
+      button(type="button").btn
+        | Cancel
+      | &nbsp;
+      button(type="button").btn.btn-danger.pull-right
+        | Delete
 
+    script(type="text/html")#tServiceForm
+      form.service-edit.form-horizontal.well
 
+    //- The old edit thingy.
     script(type="text/html")#tOldEdit
       form.service-edit.form-horizontal.well
 
