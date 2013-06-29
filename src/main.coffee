@@ -9,7 +9,6 @@ define (require) ->
   $ = require 'jquery'
   Backbone = require 'backbone-amd'
 
-
   # Need to use its global...
   require 'icanhaz'         # ich
   require 'underscore-amd'  # _
@@ -21,8 +20,12 @@ define (require) ->
 
   # The Service: the main model of this application.
   Service = Backbone.Model.extend
-    # Services use 'name' as its ID attribute
-    idAttribute: 'name'
+    # Services use '_name' as its ID attribute.
+    idAttribute: '_remoteName'
+
+    initialize: (attributes) ->
+      # Set the real name to the display name
+      @attributes._remoteName = @get 'name'
 
     # These are a service's defaults.
     # Note that 'name' must be changed before initial save.
@@ -31,6 +34,7 @@ define (require) ->
       method: 'POST'
       url: 'http://'
       parameters: []
+      preprocess: []
       documentIDParameter: 'id'
       applicationParameter: 'app'
 
@@ -56,7 +60,6 @@ define (require) ->
         service.name = name
         service
 
-
 
 
   # Views a WSManager collection as a list.
@@ -75,9 +78,8 @@ define (require) ->
 
       # Track it and add it to the DOM
       @trackedViews[service.get 'name'] = view
-      view.$el.appendTo @$el
 
-      @
+      view.$el.appendTo @$el
 
     removeElement: (service, _collection, _sync) ->
       name = service.get 'name'
@@ -88,15 +90,15 @@ define (require) ->
     initialize: ->
       @listenTo @collection, "add", @addElement
       @listenTo @collection, "remove", @removeElement
-
-
-
-  # Views a Service, with hooks to edit it.
-  ServiceEditView = Backbone.View.extend
-    initialize: ->
-      console.log 'not implemented'
+      # TODO: use _.sortedIndex to insert in the proper position.
+      @listenTo @collection, 'modify:_remoteName'
 
 
+
+  # Callback wrapper.
+  prevent = (eventFunction) -> (event) ->
+    event.preventDefault()
+    eventFunction.apply @, arguments
 
   # Views a Service for info at a glance.
   ServiceInfoView = Backbone.View.extend
@@ -105,8 +107,28 @@ define (require) ->
     className: 'service-info'
 
     initialize: ->
+      @editView = null
       @render()
+
       @listenTo @model, 'change', @render
+
+    events:
+      'click a[href$="/edit"]'  : 'toggleEdit'
+
+    toggleEdit: prevent ->
+      if @editView
+        # Slide the view out.
+        @editView.$el.slideUp
+          complete: =>
+            # Destroy it once the animation is complete.
+            @editView.remove()
+            @editView = null
+      else
+        @editView = new ServiceEditView { model: @model }
+        @editView.$el
+          .css('display', 'none')
+          .insertAfter(@$el)
+          .slideDown()
 
     render: ->
       # Replace the element's HTML with the rendered template
@@ -114,6 +136,86 @@ define (require) ->
       @$el.html rendered
 
       @
+
+  # Views a Service, with intent to edit it.
+  ServiceEditView = Backbone.View.extend
+    tagName: 'div'
+    className: 'service-edit'
+
+    initialize: ->
+      @initialRender()
+
+    events:
+      'submit': 'submit'
+      'click [data-close]': 'close'
+
+    # Create each element that belongs to this... thing.
+    initialRender: ->
+      # Create the form and its controls.
+      $form = ich.tServiceForm()
+
+      # Create actions thingy.
+      $actions = $('<div>')
+        .addClass('form-actions')
+        .append(ich.tServiceEditActions())
+
+      model = @model
+
+      # Create each form part.
+      $nameControl = makeControlGroup 'Name', 'tSimpleTextBoxControl',
+        initialValue: @model.get 'name'
+        placeholder: 'name'
+      $nameControl.find('input').first().on 'keyup', ->
+        model.set 'name', $(@).val()
+
+      $urlControl = makeControlGroup 'URL', 'tSimpleTextBoxControl',
+        initialValue: @model.get 'url'
+        placeholder: 'URL'
+      $urlControl.find('input').first().on 'keyup', ->
+        model.set 'url', $(@).val()
+
+      $methodControl = makeControlGroup 'Method', 'tToggleButtonControl',
+        options: [
+          active: yes
+          id: 'POST'
+          text: 'POST'
+        ,
+          id: 'GET'
+          text: 'GET'
+
+        ]
+
+      # Doc control!
+      $docControl = makeControlGroup 'Document parameter', 'tDefaultableTextControl',
+        initialValue: @model.get 'documentIDParameter'
+        placeholder: 'param'
+        helpText: 'The parameter that the manager will use to send ' +
+          'the ID of one Ludicrous document.'
+      $docControl.find('input').first().on 'keyup', ->
+        model.set 'documentIDParameter', $(@).val()
+      @listenTo model, 'change:documentIDParameter', ->
+        $docControl.find('input').val(model.get 'documentIDParameter')
+      $docControl.find('button').first().on 'click', ->
+        model.set 'documentIDParameter', $(@).val()
+
+      # Append each form part
+      $form.append $nameControl, $urlControl, $methodControl, $docControl
+      $form.append $actions
+
+      # Now place the entire thing in the div.
+      @$el.append $form
+
+    submit: prevent ->
+      @model.save [],
+        success: =>
+          alert 'Saved successfully!'
+        error: =>
+          alert 'Error while saving! See log.'
+          console.log 'Error args:', arguments
+
+    close: ->
+      alert 'You closed, yo.'
+
 
 
 
@@ -147,7 +249,7 @@ define (require) ->
     return if not $elem.length
 
     # Initialize the WSManager.
-    wsmanager = new WSManager [],
+    window.herp = wsmanager = new WSManager [],
       url: '/WSManager'
 
     # Make the main list view.
@@ -155,7 +257,6 @@ define (require) ->
 
     # Download the service list via AJAX.
     $elem.html ich.tIndefiniteLoading { title: 'Loading services...' }
-    #jqxhr = wsmanager.sync 'read', wsmanager
     jqxhr = wsmanager.fetch()
 
     # Add the service list to the element upon the initial loaded.

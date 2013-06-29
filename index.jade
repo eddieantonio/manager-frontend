@@ -34,7 +34,21 @@ html(lang="en_US")
       article
         .service-manager
 
+    //- Templates!
 
+    //- Service list element.
+    script(type="text/html")#tServiceListItem
+      a(href="\#{{name}}/edit", data-name="{{name}}").service-label
+        h4
+          | {{name}}
+        p.muted
+          | {{url}}
+
+    //- Service form wrapper!
+    script(type="text/html")#tServiceForm
+      form.service-edit.form-horizontal.well
+
+    //- Modal!
     script(type="text/html")#tModal
       .modal.hide#modal
         .modal-header
@@ -44,16 +58,6 @@ html(lang="en_US")
         .modal-body
         .modal-footer
           a(data-dismiss="modal").btn {{okayText}}
-
-    //- Templates!
-
-    //- Service list element.
-    script(type="text/html")#tServiceListItem
-      a(href="\#{{name}}/edit", data-name="{{name}}")
-        h4
-          | {{name}}
-        p.muted
-          | {{url}}
 
     //- Loading box.
     script(type="text/html")#tIndefiniteLoading
@@ -118,17 +122,15 @@ html(lang="en_US")
       button(type="submit").btn.btn-primary
         | Save
       | &nbsp;
-      button(type="button").btn.btn-success
+      button(type="button", data-test).btn
         | Test
       | &nbsp;
-      button(type="button").btn
-        | Cancel
-      | &nbsp;
-      button(type="button").btn.btn-danger.pull-right
+      //-
+        button(type="button", data-close).btn
+          | Cancel
+        | &nbsp;
+      button(type="button", data-delete).btn.btn-danger.pull-right
         | Delete
-
-    script(type="text/html")#tServiceForm
-      form.service-edit.form-horizontal.well
 
     //- The old edit thingy.
     script(type="text/html")#tOldEdit
@@ -187,13 +189,13 @@ html(lang="en_US")
             //i.icon-ok
             | Save
           | &nbsp;
-          button(type="button").btn.btn-success
+          button(type="button", data-test).btn.btn-success
             | Test
           | &nbsp;
-          button(type="button").btn
+          button(type="button", data-close).btn
             | Cancel
           | &nbsp;
-          button(type="button").btn.btn-danger.pull-right
+          button(type="button", data-delete).btn.btn-danger.pull-right
             | Delete
 
 
