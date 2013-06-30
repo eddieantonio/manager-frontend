@@ -96,17 +96,35 @@ define (require) ->
 
   ## Generic form views.
 
-  # Just a simple text box
   # Takes an 'attribute'
-  TextBoxView = Backbone.View.extend
+  GenericFormView = Backbone.View.extend
     initialize: (options) ->
       # Set the attribute to watch.
       @attr = options.attribute
 
-      # I know there are other args, but whatever...
+      # I know there are other args to filter, but whatever...
       @templateArgs = _.omit options, 'model', 'attribute', 'collection'
-      @initialRender()
 
+      # Render and let parent initialize.
+      @initialRender()
+      @postInitialize options
+
+    # ???
+    template: 'tSimpleTextBoxControl'
+
+    # Render the original element.
+    initialRender: ->
+      # Render the element
+      opts = _(@templateArgs).extend
+        initialValue: @model.get @attr
+      @setElement makeControlGroup @templateArgs.label, @template, opts
+
+    # Views should extend this. Default is no-op.
+    postInitialize: ->
+
+  # Just a simple text box
+  TextBoxView = GenericFormView.extend
+    postInitialize: (options) ->
       # Get the text box, yo!
       @textBox = @$('input').first()
 
@@ -119,18 +137,11 @@ define (require) ->
     events:
       'keyup input' : -> @model.set @attr, @textBox.val()
 
-    # Render the original element.
-    initialRender: ->
-      # Render the element
-      opts = _(@templateArgs).extend
-        initialValue: @model.get @attr
-      @setElement makeControlGroup @templateArgs.label, @template, opts
-
-
+  # A 'defaultable' text box has a 'use default' button.
   DefaultableTextBoxView = TextBoxView.extend
-    initialize: ->
+    postInitialize: ->
       # Call the ol' initialize. It will set the element.
-      TextBoxView.prototype.initialize.apply @, arguments
+      TextBoxView.prototype.postInitialize.apply @, arguments
       @button = @$ 'button'
 
     template: 'tDefaultableTextControl'
@@ -141,8 +152,15 @@ define (require) ->
     setDefault: ->
       # Grab the default from its 'data-default' attribute.
       val = @button.attr 'data-default'
-      # The text-box will automatically update.
+      # The text-box will automatically update on model set.
       @model.set @attr, val
+
+  ToggleButtonView = GenericFormView.extend
+    postInitialize: (options) ->
+      # Should construct a table, and figure out which should be active
+    template: 'tToggleButtonControl'
+    events:
+      'click button': 'derp'
 
 
 
@@ -194,20 +212,23 @@ define (require) ->
     events:
       'click a[href$="/edit"]'  : 'toggleEdit'
 
+    showEdit: ->
+      @editView = new ServiceEditView { model: @model }
+      @editView.$el
+        .css('display', 'none')
+        .insertAfter(@$el)
+        .slideDown()
+
+    closeEdit: ->
+      # Slide the view out.
+      @editView.$el.slideUp
+        complete: =>
+          # Destroy it once the animation is complete.
+          @editView.remove()
+          @editView = null
+
     toggleEdit: prevent ->
-      if @editView
-        # Slide the view out.
-        @editView.$el.slideUp
-          complete: =>
-            # Destroy it once the animation is complete.
-            @editView.remove()
-            @editView = null
-      else
-        @editView = new ServiceEditView { model: @model }
-        @editView.$el
-          .css('display', 'none')
-          .insertAfter(@$el)
-          .slideDown()
+      unless @editView then @showEdit() else @closeEdit()
 
     render: ->
       # Replace the element's HTML with the rendered template
@@ -243,7 +264,7 @@ define (require) ->
     ,
       # Method toggle
       label: 'Method'
-      class: TextBoxView # ToggleButtonView
+      class: ToggleButtonView
       options: [
         { id: 'POST', label: 'POST', active: yes }
         { id: 'GET', label: 'GET' }
