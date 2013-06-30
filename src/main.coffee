@@ -14,7 +14,7 @@ define (require) ->
   require 'underscore-amd'  # _
 
   # Libraries that should just exist on the page.
-  require 'bootstrap-javascript'
+  require 'bootstrap-javascript' # requires jQuery...
 
 
 
@@ -53,6 +53,9 @@ define (require) ->
   WSManager = Backbone.Collection.extend
     model: Service
     url: '/WSManager'
+
+    # Sort by remote name.
+    comparator: '_remoteName'
 
     # Parse the object received from the server into a list of services.
     parse: (response) ->
@@ -99,8 +102,14 @@ define (require) ->
   # Takes an 'attribute'
   GenericFormView = Backbone.View.extend
     initialize: (options) ->
-      # Set the attribute to watch.
-      @attr = options.attribute
+      @attr = attr = options.attribute
+      model = @model
+      # Create a new closure that gets/and sets the fixed attribute
+      @val = (newValue) ->
+        if newValue
+          model.set attr, newValue
+        else
+          model.get attr
 
       # I know there are other args to filter, but whatever...
       @templateArgs = _.omit options, 'model', 'attribute', 'collection'
@@ -109,14 +118,14 @@ define (require) ->
       @initialRender()
       @postInitialize options
 
-    # ???
+    # A default, I guess. It should really be some blank template.
     template: 'tSimpleTextBoxControl'
 
     # Render the original element.
     initialRender: ->
       # Render the element
       opts = _(@templateArgs).extend
-        initialValue: @model.get @attr
+        initialValue: @val()
       @setElement makeControlGroup @templateArgs.label, @template, opts
 
     # Views should extend this. Default is no-op.
@@ -124,43 +133,68 @@ define (require) ->
 
   # Just a simple text box
   TextBoxView = GenericFormView.extend
+    template: 'tSimpleTextBoxControl'
+
     postInitialize: (options) ->
       # Get the text box, yo!
       @textBox = @$('input').first()
 
       # Bind changing the text when the model changes.
       @listenTo @model, "change:#{@attr}", =>
-        @textBox.val @model.get @attr
-
-    template: 'tSimpleTextBoxControl'
+        @textBox.val @val()
 
     events:
-      'keyup input' : -> @model.set @attr, @textBox.val()
+      'keyup input' : -> @val @textBox.val()
 
   # A 'defaultable' text box has a 'use default' button.
   DefaultableTextBoxView = TextBoxView.extend
+    template: 'tDefaultableTextControl'
+
     postInitialize: ->
       # Call the ol' initialize. It will set the element.
       TextBoxView.prototype.postInitialize.apply @, arguments
       @button = @$ 'button'
-
-    template: 'tDefaultableTextControl'
 
     events: _.extend TextBoxView.prototype.events,
       'click [data-default]': 'setDefault'
 
     setDefault: ->
       # Grab the default from its 'data-default' attribute.
-      val = @button.attr 'data-default'
+      newVal = @button.attr 'data-default'
       # The text-box will automatically update on model set.
-      @model.set @attr, val
+      @val newVal
 
   ToggleButtonView = GenericFormView.extend
-    postInitialize: (options) ->
-      # Should construct a table, and figure out which should be active
     template: 'tToggleButtonControl'
+
+    postInitialize: (options) ->
+      # Construct an object of possible options, as given in the template args
+      @toggleOpts = {}
+      for opt in @templateArgs.options
+        @toggleOpts[opt.id] = opt.label
+
+      # Render will highlight the proper active element.
+      @render()
+
+      # Render on model change.
+      @listenTo @model, "change:#{@attr}", @render
+
     events:
-      'click button': 'derp'
+      'click button[data-option]' : 'setOption'
+
+    render: ->
+      # Set the correct active option from the current value.
+      currentID = @val()
+      unless _.has @toggleOpts, currentID
+        console.warn "#{currentID} not found in options:", @toggleOpts
+
+      @$("[data-toggle] button").removeClass 'active'
+      @$("[data-toggle] button[data-option='#{currentID}']").addClass 'active'
+
+    setOption: (event) ->
+      $el = $ event.currentTarget
+      newVal = $el.attr 'data-option'
+      @val newVal
 
 
 
@@ -195,7 +229,7 @@ define (require) ->
       @listenTo @collection, "add", @addElement
       @listenTo @collection, "remove", @removeElement
       # TODO: use _.sortedIndex to insert in the proper position.
-      @listenTo @collection, 'modify:_remoteName'
+      #@listenTo @collection, 'modify:_remoteName'
 
   # Views a Service for info at a glance.
   ServiceInfoView = Backbone.View.extend
@@ -265,8 +299,9 @@ define (require) ->
       # Method toggle
       label: 'Method'
       class: ToggleButtonView
+      attribute: 'method'
       options: [
-        { id: 'POST', label: 'POST', active: yes }
+        { id: 'POST', label: 'POST' }
         { id: 'GET', label: 'GET' }
       ]
     ,
@@ -287,6 +322,9 @@ define (require) ->
       defaultValue: 'app'
       helpText: 'The parameter that the manager will use to ' +
         'send the name of an entire Ludicrous application.'
+
+      # Still need controls for parameters
+      # and preprocessors
     ]
 
     # From the given controls in @controls, creates them
@@ -315,24 +353,11 @@ define (require) ->
         .addClass('form-actions')
         .append(ich.tServiceEditActions())
 
-      #$methodControl = makeControlGroup 'Method', 'tToggleButtonControl',
-      #  options: [
-      #    { id: 'POST', label: 'POST', active: yes }
-      #    { id: 'GET', label: 'GET' }
-      #  ]
-
       controls = @makeControls()
 
       # Append each form part.
       $form.append '', _.pluck controls, '$el'
 
-      #$form.append(
-      #  nameControl.$el
-      #  urlControl.$el
-      #  $methodControl
-      #  docControl.$el
-      #  appControl.$el
-      #)
       # And the form actions.
       $form.append $actions
 
@@ -387,6 +412,8 @@ define (require) ->
 
   # On Document ready...
   $ ->
+    # Ensure that the templates are loaded.
+    ich.grabTemplates()
     # Install the service manager in its element.
     serviceManager $ '.service-manager'
 
