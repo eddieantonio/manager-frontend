@@ -96,7 +96,7 @@ html(lang="en_US")
       {{helpText}}      Help text
     script(type="text/html")#tDefaultableTextControl
       .input-append
-        input(value="{{genID}}",
+        input(id="{{genID}}",
           name="{{name}}", value="{{initialValue}}",
           type="text", placeholder="{{placeholder}}").input-mini
         button(type='button',
@@ -108,13 +108,13 @@ html(lang="en_US")
     //-
       {{options}}       Options available.
       {{id}}              Identify the selection
-      {{text}}            Display text
+      {{label}}           Display text
     script(type="text/html")#tToggleButtonControl
       div(data-toggle="buttons-radio").btn-group
         | {{#options}}
         button(type="button",
           class="btn{{#active}} active{{/active}}",
-          data-option="{{id}}") {{text}}
+          data-option="{{id}}") {{label}}
         | {{/options}}
 
     //- No weird templating here, baus!

@@ -97,26 +97,22 @@ define (require) ->
   ## Generic form views.
 
   # Just a simple text box
-  # Takes an 'attr'
+  # Takes an 'attribute'
   TextBoxView = Backbone.View.extend
     initialize: (options) ->
       # Set the attribute to watch.
       @attr = options.attribute
-
-      console.log options
 
       # I know there are other args, but whatever...
       @templateArgs = _.omit options, 'model', 'attribute', 'collection'
       @initialRender()
 
       # Get the text box, yo!
-      @textBox = @$ 'input'
+      @textBox = @$('input').first()
 
       # Bind changing the text when the model changes.
       @listenTo @model, "change:#{@attr}", =>
         @textBox.val @model.get @attr
-
-      console.log @templateArgs
 
     template: 'tSimpleTextBoxControl'
 
@@ -139,8 +135,8 @@ define (require) ->
 
     template: 'tDefaultableTextControl'
 
-    events:
-      'click button': 'setDefault'
+    events: _.extend TextBoxView.prototype.events,
+      'click [data-default]': 'setDefault'
 
     setDefault: ->
       # Grab the default from its 'data-default' attribute.
@@ -231,20 +227,62 @@ define (require) ->
     events:
       'submit': 'submit'
       'click [data-close]': 'close'
-    
+
     controls: [
-      name: 'TextBoxView'
-      props:
-        label: 'Name',
-        attribute: 'name',
-        placeholder: 'Service name'
+      # Name input
+      label: 'Name',
+      class: TextBoxView
+      attribute: 'name'
+      placeholder: 'Service name'
     ,
-      name: 'TextBoxView'
-      props:
-        label: 'URL',
-        attribute: 'url',
-        placeholder: 'name, yo'
+      # URL input
+      label: 'URL'
+      class: TextBoxView
+      attribute: 'url'
+      placeholder: 'http://'
+    ,
+      # Method toggle
+      label: 'Method'
+      class: TextBoxView # ToggleButtonView
+      options: [
+        { id: 'POST', label: 'POST', active: yes }
+        { id: 'GET', label: 'GET' }
+      ]
+    ,
+      # ?id=
+      label: 'Document Parameter'
+      class: DefaultableTextBoxView
+      attribute: 'documentIDParameter'
+      placeholder: 'Parameter'
+      defaultValue: 'id'
+      helpText: 'The parameter that the manager will use to send ' +
+        'the ID of one Ludicrous document.'
+    ,
+      # ?app=
+      label: 'Application Parameter'
+      class: DefaultableTextBoxView
+      attribute: 'applicationParameter'
+      placeholder: 'Parameter'
+      defaultValue: 'app'
+      helpText: 'The parameter that the manager will use to ' +
+        'send the name of an entire Ludicrous application.'
     ]
+
+    # From the given controls in @controls, creates them
+    # Returns the list of controls.
+    makeControls: ->
+      # Instantiate all of the controls.
+      @controlInstances = for props in @controls
+        # Make a copy of the props with our model.
+        newProps = _.extend props,
+          model: @model
+
+        # "Pop" the class property from new props.
+        cls = newProps.class
+
+        # Instantiate!
+        control = new cls newProps
+
 
     # Create each element that belongs to this... thing.
     initialRender: ->
@@ -256,41 +294,25 @@ define (require) ->
         .addClass('form-actions')
         .append(ich.tServiceEditActions())
 
-      model = @model
+      #$methodControl = makeControlGroup 'Method', 'tToggleButtonControl',
+      #  options: [
+      #    { id: 'POST', label: 'POST', active: yes }
+      #    { id: 'GET', label: 'GET' }
+      #  ]
 
-      nameControl = new TextBoxView
-        label: 'Name',
-        model: @model,
-        attribute: 'name',
-        placeholder: 'name, yo'
+      controls = @makeControls()
 
-      urlControl = new TextBoxView
-        label: 'URL'
-        model: @model
-        attribute: 'url'
-        placeholder: 'http://'
+      # Append each form part.
+      $form.append '', _.pluck controls, '$el'
 
-      $methodControl = makeControlGroup 'Method', 'tToggleButtonControl',
-        options: [
-          { active: yes, id: 'POST', text: 'POST' }
-          { id: 'GET', text: 'GET' }
-        ]
-
-      # Doc control!
-      $docControl = makeControlGroup 'Document parameter', 'tDefaultableTextControl',
-        initialValue: @model.get 'documentIDParameter'
-        placeholder: 'param'
-        helpText: 'The parameter that the manager will use to send ' +
-          'the ID of one Ludicrous document.'
-      $docControl.find('input').first().on 'keyup', ->
-        model.set 'documentIDParameter', $(@).val()
-      @listenTo model, 'change:documentIDParameter', ->
-        $docControl.find('input').val(model.get 'documentIDParameter')
-      $docControl.find('button').first().on 'click', ->
-        model.set 'documentIDParameter', $(@).val()
-
-      # Append each form part
-      $form.append nameControl.$el, urlControl.$el, $methodControl, $docControl
+      #$form.append(
+      #  nameControl.$el
+      #  urlControl.$el
+      #  $methodControl
+      #  docControl.$el
+      #  appControl.$el
+      #)
+      # And the form actions.
       $form.append $actions
 
       # Now place the entire thing in the div.
