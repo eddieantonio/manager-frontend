@@ -18,6 +18,8 @@ define (require) ->
 
 
 
+  ## Models
+
   # The Service: the main model of this application.
   Service = Backbone.Model.extend
     # Services use '_name' as its ID attribute.
@@ -62,6 +64,94 @@ define (require) ->
 
 
 
+  ## View helper functions
+
+  # Wraps an event handler with preventDefault
+  prevent = (eventFunction) -> (event) ->
+    event.preventDefault()
+    eventFunction.apply @, arguments
+
+  # Converts template returned by ich into a string.
+  templateToString = (template) -> $('<div>').html(template).html()
+
+  # Creates a control group for the named template.
+  makeControlGroup = (label, controlName, options={}, extraClasses="") ->
+    # Create a unique ID so that the label points to the input.
+    inputID = _.uniqueId 'ctrl-'
+    options.genID = inputID
+
+    controlTemplate = ich[controlName]
+    controlHTML = controlTemplate options
+
+    # Hack to make the jQuery template into a string.
+    controlAsString = templateToString controlHTML
+
+    ich.tFormControlGroup
+      labelHTML: label
+      inputFor: inputID
+      controls: controlAsString
+      extraClasses
+
+
+
+  ## Generic form views.
+
+  # Just a simple text box
+  # Takes an 'attr'
+  TextBoxView = Backbone.View.extend
+    initialize: (options) ->
+      # Set the attribute to watch.
+      @attr = options.attribute
+
+      console.log options
+
+      # I know there are other args, but whatever...
+      @templateArgs = _.omit options, 'model', 'attribute', 'collection'
+      @initialRender()
+
+      # Get the text box, yo!
+      @textBox = @$ 'input'
+
+      # Bind changing the text when the model changes.
+      @listenTo @model, "change:#{@attr}", =>
+        @textBox.val @model.get @attr
+
+      console.log @templateArgs
+
+    template: 'tSimpleTextBoxControl'
+
+    events:
+      'keyup input' : -> @model.set @attr, @textBox.val()
+
+    # Render the original element.
+    initialRender: ->
+      # Render the element
+      opts = _(@templateArgs).extend
+        initialValue: @model.get @attr
+      @setElement makeControlGroup @templateArgs.label, @template, opts
+
+
+  DefaultableTextBoxView = TextBoxView.extend
+    initialize: ->
+      # Call the ol' initialize. It will set the element.
+      TextBoxView.prototype.initialize.apply @, arguments
+      @button = @$ 'button'
+
+    template: 'tDefaultableTextControl'
+
+    events:
+      'click button': 'setDefault'
+
+    setDefault: ->
+      # Grab the default from its 'data-default' attribute.
+      val = @button.attr 'data-default'
+      # The text-box will automatically update.
+      @model.set @attr, val
+
+
+
+  ## Views
+
   # Views a WSManager collection as a list.
   ServiceListView = Backbone.View.extend
     tagName: 'ul'
@@ -92,13 +182,6 @@ define (require) ->
       @listenTo @collection, "remove", @removeElement
       # TODO: use _.sortedIndex to insert in the proper position.
       @listenTo @collection, 'modify:_remoteName'
-
-
-
-  # Callback wrapper.
-  prevent = (eventFunction) -> (event) ->
-    event.preventDefault()
-    eventFunction.apply @, arguments
 
   # Views a Service for info at a glance.
   ServiceInfoView = Backbone.View.extend
@@ -148,6 +231,20 @@ define (require) ->
     events:
       'submit': 'submit'
       'click [data-close]': 'close'
+    
+    controls: [
+      name: 'TextBoxView'
+      props:
+        label: 'Name',
+        attribute: 'name',
+        placeholder: 'Service name'
+    ,
+      name: 'TextBoxView'
+      props:
+        label: 'URL',
+        attribute: 'url',
+        placeholder: 'name, yo'
+    ]
 
     # Create each element that belongs to this... thing.
     initialRender: ->
@@ -161,28 +258,22 @@ define (require) ->
 
       model = @model
 
-      # Create each form part.
-      $nameControl = makeControlGroup 'Name', 'tSimpleTextBoxControl',
-        initialValue: @model.get 'name'
-        placeholder: 'name'
-      $nameControl.find('input').first().on 'keyup', ->
-        model.set 'name', $(@).val()
+      nameControl = new TextBoxView
+        label: 'Name',
+        model: @model,
+        attribute: 'name',
+        placeholder: 'name, yo'
 
-      $urlControl = makeControlGroup 'URL', 'tSimpleTextBoxControl',
-        initialValue: @model.get 'url'
-        placeholder: 'URL'
-      $urlControl.find('input').first().on 'keyup', ->
-        model.set 'url', $(@).val()
+      urlControl = new TextBoxView
+        label: 'URL'
+        model: @model
+        attribute: 'url'
+        placeholder: 'http://'
 
       $methodControl = makeControlGroup 'Method', 'tToggleButtonControl',
         options: [
-          active: yes
-          id: 'POST'
-          text: 'POST'
-        ,
-          id: 'GET'
-          text: 'GET'
-
+          { active: yes, id: 'POST', text: 'POST' }
+          { id: 'GET', text: 'GET' }
         ]
 
       # Doc control!
@@ -199,7 +290,7 @@ define (require) ->
         model.set 'documentIDParameter', $(@).val()
 
       # Append each form part
-      $form.append $nameControl, $urlControl, $methodControl, $docControl
+      $form.append nameControl.$el, urlControl.$el, $methodControl, $docControl
       $form.append $actions
 
       # Now place the entire thing in the div.
@@ -219,26 +310,7 @@ define (require) ->
 
 
 
-  # Converts template returned by ich into a string.
-  templateToString = (template) -> $('<div>').html(template).html()
-
-  # Helper to create a control group from the named template.
-  makeControlGroup = (label, controlName, options={}, extraClasses="") ->
-    # Create a unique ID so that the label points to the input.
-    inputID = _.uniqueId 'cnt-'
-    options.genID = inputID
-
-    controlTemplate = ich[controlName]
-    controlHTML = controlTemplate options
-
-    # Hack to make the jQuery template into a string.
-    controlAsString = templateToString controlHTML
-
-    ich.tFormControlGroup
-      labelHTML: label
-      inputFor: inputID
-      controls: controlAsString
-      extraClasses
+  ## The "main" function.
 
   # Install the service manager on an element.
   serviceManager = (elem) ->
