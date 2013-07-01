@@ -44,7 +44,7 @@ module.exports = (grunt) ->
         files: lessFiles
       production:
         options:
-          compress: yes
+          yuicompress: yes
         files: lessFiles
 
     watch:
@@ -57,6 +57,13 @@ module.exports = (grunt) ->
       less:
         files: ['styles/style/*.less']
         tasks: ['less:development']
+
+    requirejs:
+      compile:
+        options:
+          baseUrl: 'static/js'
+          mainConfigFile: 'static/js/app.js'
+          out: 'static/js/app.js'
 
     requirejsconfig:
       dev:
@@ -74,16 +81,18 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-jade'
   grunt.loadNpmTasks 'grunt-contrib-less' # This mod is actually pretty dang nifty.
+  grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-requirejs-config'
   grunt.loadNpmTasks 'grunt-shell'
 
   # TASKS
   grunt.registerTask 'default', ['setup']
-  grunt.registerTask 'compile', ['coffee:compile']
+  grunt.registerTask 'compile', ['coffee']
   grunt.registerTask 'prod-assets', ['jade:production', 'less:production']
   grunt.registerTask 'dev-assets', ['jade:development', 'less:development']
-  grunt.registerTask 'setup', ['coffee:other', 'requirejsconfig', 'shell']
-  grunt.registerTask 'production', ['prod-assets'] # Also, r.js stuff.
+  grunt.registerTask 'setup-base', ['compile', 'requirejsconfig', 'shell']
+  grunt.registerTask 'setup', ['setup-base', 'dev-assets']
+  grunt.registerTask 'production', ['setup-base', 'prod-assets'] # Also, r.js stuff.
 
 

@@ -7,14 +7,12 @@ It manages services, yo.
 ### Development
 
 ```sh
-npm install
-grunt
+npm install && bower install && grunt setup
 ```
 
 ### Production
 
 ```sh
-npm install
-grunt production
+npm install && bower install && grunt production
 ```
 
