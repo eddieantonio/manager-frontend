@@ -1,3 +1,4 @@
+- var TITLE = 'Service Registry'
 - var SDIR = '/static'; // static directory
 - var VDIR = SDIR + '/vendor'; // vendor directory
 - var TEMPLATE_DEBUG = false;
@@ -6,7 +7,7 @@ html(lang="en_US")
   head
     meta(charset="UTF-8")
 
-    title Service Manager
+    title= TITLE
 
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
 
@@ -27,9 +28,9 @@ html(lang="en_US")
     .container
 
       header.page-header
-        h1 Service Manager
+        h1= TITLE
         p.lead
-          | Manage the web services that process documents.
+          | Web services manager.
 
       article
         .service-manager

@@ -22,12 +22,12 @@ define (require) ->
 
   # The Service: the main model of this application.
   Service = Backbone.Model.extend
-    # Services use '_name' as its ID attribute.
+    # Services use 'name' as its ID attribute.
     idAttribute: '_remoteName'
 
     initialize: (attributes) ->
       # Set the real name to the display name
-      @attributes._remoteName = @get 'name'
+      #@attributes._remoteName = @get 'name'
 
     # These are a service's defaults.
     # Note that 'name' must be changed before initial save.
@@ -59,11 +59,12 @@ define (require) ->
 
     # Parse the object received from the server into a list of services.
     parse: (response) ->
-      serviceList = _(response).map (partialService, name) ->
-        service = _.clone partialService
-        # The keys should become the 'name' attribute.
-        service.name = name
-        service
+      serviceList = _.map response, (partialService, name) ->
+        service = _.extend partialService,
+          # The keys should become the '_remoteName' attribute.
+          _remoteName: name
+          # Also, carry the name attribute verbatim
+          name: name
 
 
 
@@ -389,24 +390,52 @@ define (require) ->
     return if not $elem.length
 
     # Initialize the WSManager.
-    window.herp = wsmanager = new WSManager [],
+    window.col = wsmanager = new WSManager [],
       url: '/WSManager'
+
+    # Show a loading... thing.
+    $elem.html ich.tIndefiniteLoading { title: 'Loading services...' }
 
     # Make the main list view.
     serviceList = new ServiceListView { collection: wsmanager }
 
-    # Download the service list via AJAX.
-    $elem.html ich.tIndefiniteLoading { title: 'Loading services...' }
+    ## Fetch the service list.
+    #jqxhr = Backbone.sync 'read', wsmanager,
+
+    #  # Add the service list to the element upon the initial loaded.
+    #  success: (response) ->
+    #    # Fill the manager with data
+    #    wsmanager.reset wsmanager.parse response
+
+    #    console.log response
+
+    #    # Make the main list view.
+    #    serviceList = new ServiceListView { collection: wsmanager }
+
+    #    # Append it the DOM.
+    #    $elem
+    #      .empty()
+    #      .append serviceList.$el
+
+    #  # Or display an error on error.
+    #  error: (_, textStatus) ->
+    #    $elem.text "Error! Status #{textStatus}."
+
+    # Fetch the service list.
     jqxhr = wsmanager.fetch()
 
     # Add the service list to the element upon the initial loaded.
     jqxhr.done ->
-      $elem.empty()
-      serviceList.$el.appendTo $elem
 
-    # Or display an error on error.
+      # Append it the DOM.
+      $elem
+        .empty()
+        .append serviceList.$el
+
+      # Or display an error on error.
     jqxhr.fail (_, textStatus) ->
       $elem.text "Error! Status #{textStatus}."
+
 
 
 
