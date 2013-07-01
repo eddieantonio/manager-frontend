@@ -263,14 +263,27 @@ define (require) ->
     events:
       'click a[href$="/edit"]'  : 'toggleEdit'
 
+    remove: ->
+      @closeEdit()
+      Backbone.View.prototype.remove.call @
+
     showEdit: ->
       @editView = new ServiceEditView { model: @model }
+
       @editView.$el
         .css('display', 'none')
         .insertAfter(@$el)
         .slideDown()
 
+      # Listen to the view's 'close' event.
+      @listenTo @editView, 'close', @closeEdit
+
     closeEdit: ->
+      return if not @editView
+
+      # No need to listen to the view's events anymore.
+      @stopListening @editView
+
       # Slide the view out.
       @editView.$el.slideUp
         complete: =>
@@ -283,6 +296,8 @@ define (require) ->
 
     render: ->
       # Replace the element's HTML with the rendered template
+      # TODO: make more efficient -- don't need to re-render the whole
+      # element!
       rendered = ich.tServiceListItem @model.attributes
       @$el.html rendered
 
@@ -295,7 +310,11 @@ define (require) ->
 
     initialize: ->
       @initialRender()
-      @listenTo @model, 'destroy', @remove
+
+      console.log @
+
+      # Slide the element up, destroy it.
+      @listenTo @model, 'destroy', @close
 
     events:
       'submit': 'submit'
@@ -402,7 +421,8 @@ define (require) ->
       , ->
         alert 'Could not delete model!'
 
-    close: -> false
+    close: ->
+      @trigger 'close'
 
 
 
