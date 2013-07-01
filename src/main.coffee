@@ -2,19 +2,15 @@
 # ALL IN ONE FILE!
 # Author: Eddie Antonio Santos <easantos@ualberta.ca>
 
-
-
 define (require) ->
-  # Libaries needed, by name.
+  # Libaries required, by name.
   $ = require 'jquery'
-  Backbone = require 'backbone-amd'
-
-  # Need to use its global...
-  require 'icanhaz'         # ich
-  require 'underscore-amd'  # _
+  _ = require 'underscore'
+  Backbone = require 'backbone'
+  ich = require 'icanhaz'
 
   # Libraries that should just exist on the page.
-  require 'bootstrap-javascript' # requires jQuery...
+  require 'bootstrap-button'
 
 
 

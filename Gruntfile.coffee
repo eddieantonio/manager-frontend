@@ -4,16 +4,21 @@ requireShim =
     exports: '_'
   backbone:
     exports: 'Backbone'
-    deps: ['underscore']
+    deps: ['jquery', 'underscore']
   icanhaz:
     exports: 'ich'
   'bootstrap-button':
     deps: ['jquery']
 
+requireLibs = [
+  'jquery', 'backbone', 'underscore', 'icanhaz',
+  { name: 'icanhaz', path: 'icanhas/ICanHaz' }
+  { name: 'bootstrap-button', path: 'bootstrap/js/bootstrap-button' }
+]
+
 module.exports = (grunt) ->
   STATIC_DIR = 'static'
   JS_DIR = "#{STATIC_DIR}/js"
-  #VENDOR_DIR = grunt.file.readJSON '.bowerrc'
 
   createVendorPaths = (vendorPath, libs) ->
     paths = {}
@@ -21,14 +26,10 @@ module.exports = (grunt) ->
     for lib in libs
       if 'string' is grunt.util.kindOf lib
         libName = lib
-        libPath = "#{vendorPath}/#{libName}"
+        libPath = "#{vendorPath}/#{libName}/#{libName}"
       else
         libName = lib.name
-        libPath =
-          if lib.path?
-            "#{vendorPath}/#{lib.path}"
-          else
-            "#{vendorPath}/#{libName}"
+        libPath = "#{vendorPath}/#{lib.path}"
 
       paths[libName] = libPath
 
@@ -36,40 +37,28 @@ module.exports = (grunt) ->
 
   grunt.initConfig
     pkg: grunt.file.readJSON 'package.json'
-
-    bower:
-      target:
-        rjsConfig: "./#{JS_DIR}/config.js"
+    bowerrc: grunt.file.readJSON '.bowerrc'
 
     requirejsconfig:
       dev:
-        src: 'src/config.js'
-        dest: '#{JS_DIR}/config.js'
+        src: "#{JS_DIR}/app.configless.js"
+        dest: "#{JS_DIR}/app.js"
         options:
           shim: requireShim
-          paths: createVendorPaths 'vendor'
+          paths: createVendorPaths '../vendor', requireLibs
 
+    shell:
+      # Make hard links to Bootstrap icon sprites.
+      'copy-icons':
+        command: 'ln <%= bowerrc.directory %>/bootstrap/img/*.png static/img/'
 
-
-  # Bower-RequireJS task.
-  grunt.loadNpmTasks 'grunt-bower-requirejs'
-
-  # Shim that in here, yo!
   grunt.loadNpmTasks 'grunt-requirejs-config'
+  grunt.loadNpmTasks 'grunt-shell'
 
   # TASKS
-
-  #grunt.registerTask 'default', ['bower']
+  grunt.registerTask 'default', ['test-grunt']
+  grunt.registerTask 'test-grunt', []
+  grunt.registerTask 'setup', ['requirejsconfig:dev']
   #grunt.registerTask 'production', ['bower']
 
-  grunt.registerTask 'herp', 'derp', ->
-    console.log createVendorPaths '../vendor', [
-      'jquery'
-      'backbone'
-      'underscore'
-      'icanhaz'
-      { name: 'bootstrap-button', path: 'bootstrap/js/bootstrap-button' }
-    ]
-
-  
 

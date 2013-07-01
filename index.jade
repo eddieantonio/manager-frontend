@@ -1,6 +1,6 @@
 - var TITLE = 'Service Registry'
 - var SDIR = '/static'; // static directory
-- var VDIR = SDIR + '/bower'; // vendor directory
+- var VDIR = SDIR + '/vendor'; // vendor directory
 - var TEMPLATE_DEBUG = false;
 !!!
 html(lang="en_US")
@@ -19,9 +19,8 @@ html(lang="en_US")
       link(rel="stylesheet", type="text/css", href=SDIR + "/style/styles.css")
 
     //- Service manager!
-    script(src=SDIR + "/bower/requirejs/require.js",
-      data-main=SDIR + "/js/main")
-    script(src=SDIR + "/js/config.js")
+    script(src=VDIR + "/requirejs/require.js",
+      data-main=SDIR + "/js/app")
 
   body
 

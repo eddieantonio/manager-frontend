@@ -7,14 +7,12 @@
   "dependencies": {},
   "devDependencies": {
     "grunt": "~0.4.1",
-    "grunt-bower-requirejs": "~0.4.4",
     "grunt-contrib-watch": "~0.4.4",
     "grunt-contrib-requirejs": "~0.4.1",
     "grunt-contrib-coffee": "~0.7.0",
-    "grunt-bower-task": "~0.2.3",
     "grunt-contrib-jade": "~0.7.0",
     "grunt-requirejs-config": "0.0.2",
-    "grunt-contrib-uglify": "~0.2.2"
+    "grunt-shell": "~0.3.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
