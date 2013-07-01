@@ -1,12 +1,11 @@
 {
     "dependencies": {
         "jquery": "~2.0",
-        "bootstrap-javascript": "*",
-        "backbone-amd": "*",
-        "underscore-amd": "*"
+        "backbone": "1.0.0",
+        "underscore": "1.4.4",
+        "bootstrap": "*"
     },
     "devDependencies": {
-        "less": "*",
-        "bootstrap": "*"
+        "less": "*"
     }
 }

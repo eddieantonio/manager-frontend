@@ -1,11 +1,20 @@
-# Services Mini-app
+# Service Registry Manager Thing
 
-Will need a `static` dir with a bunch of libraries and stuff:
+It manages services, yo.
 
- * jquery
- * bootstrap
- * less
- * icanhaz
- * backbone
- * underscore
+## Install
+
+### Development
+
+```sh
+npm install
+grunt
+```
+
+### Production
+
+```sh
+npm install
+grunt production
+```
 
