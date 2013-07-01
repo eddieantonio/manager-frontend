@@ -173,7 +173,7 @@ def change_service(request, new_service, name):
     database[new_name] = new_service
 
     # TODO: (maybe) make sure we're not clobbering some other name.
-    if new_name != old_service['name']:
+    if new_name != name:
         # Must rename (that is, remove) the old service.
         # It'd be nice if this was transactional but... whatever.
         del database[name]
