@@ -1,6 +1,6 @@
 - var TITLE = 'Service Registry'
 - var SDIR = '/static'; // static directory
-- var VDIR = SDIR + '/vendor'; // vendor directory
+- var VDIR = SDIR + '/bower'; // vendor directory
 - var TEMPLATE_DEBUG = false;
 !!!
 html(lang="en_US")
@@ -13,10 +13,10 @@ html(lang="en_US")
 
     //- Bootstrap!
     if TEMPLATE_DEBUG
-      link(rel="stylesheet/less", type="text/css", href=SDIR + "/styles.less")
+      link(rel="stylesheet/less", type="text/css", href=SDIR + "/style/styles.less")
       script(src=VDIR + "/less.js")
     else
-      link(rel="stylesheet", type="text/css", href=SDIR + "/styles.css")
+      link(rel="stylesheet", type="text/css", href=SDIR + "/style/styles.css")
 
     //- Service manager!
     script(src=SDIR + "/bower/requirejs/require.js",
@@ -120,16 +120,24 @@ html(lang="en_US")
     //- No weird templating here, baus!
     script(type="text/html")#tServiceEditActions
       button(type="submit").btn.btn-primary
+        i.icon-ok.icon-white
+        | &nbsp;
         | Save
       | &nbsp;
-      button(type="button", data-test).btn
-        | Test
-      | &nbsp;
       //-
+        button(type="button", data-test).btn
+          i.icon-eye-open.icon-white
+          | &nbsp;
+          | Test
+        | &nbsp;
         button(type="button", data-close).btn
+          i.icon-remove-circle.icon-white
+          | &nbsp;
           | Cancel
         | &nbsp;
       button(type="button", data-delete).btn.btn-danger.pull-right
+        i.icon-trash.icon-white
+        | &nbsp;
         | Delete
 
     //- The old edit thingy.
@@ -186,7 +194,7 @@ html(lang="en_US")
 
         .form-actions
           button(type="submit").btn.btn-primary
-            //i.icon-ok
+            i.icon-ok
             | Save
           | &nbsp;
           button(type="button", data-test).btn.btn-success

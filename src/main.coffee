@@ -236,7 +236,11 @@ define (require) ->
       name = service.get 'name'
       view = @trackedViews[name]
       delete @trackedViews[name]
-      view.remove()
+
+      # Do a stupid animation before removal.
+      view.$el.slideUp
+        complete: ->
+          view.remove()
 
     initialize: ->
       @listenTo @collection, "add", @addElement
@@ -291,10 +295,12 @@ define (require) ->
 
     initialize: ->
       @initialRender()
+      @listenTo @model, 'destroy', @remove
 
     events:
       'submit': 'submit'
       'click [data-close]': 'close'
+      'click [data-delete]': 'delete'
 
     controls: [
       # Name input
@@ -385,8 +391,18 @@ define (require) ->
           alert 'Error while saving! See log.'
           console.log 'Error args:', arguments
 
-    close: ->
-      alert 'You closed, yo.'
+    delete: ->
+      # Confirm delete, yo!
+      msg = 'Are you sure you want to delete this service? This ' +
+        'action cannot be undone.'
+      return unless confirm msg
+
+      @model.destroy().then ->
+        true # Don't really need to do anything.
+      , ->
+        alert 'Could not delete model!'
+
+    close: -> false
 
 
 
