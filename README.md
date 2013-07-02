@@ -4,6 +4,9 @@ It manages services, yo.
 
 ## Install
 
+Requires `npm`, and `bower` (can be installed with `npm install -g bower`).
+Server needs Python 2.7, Django, and importd.
+
 ### Development
 
 ```sh

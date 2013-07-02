@@ -12,24 +12,31 @@ module.exports = (grunt) ->
   lessFiles =
     'static/style/styles.css': 'static/style/styles.less'
 
+  configFile = "#{JS_DIR}/app.js"
+
+  requireConfig =
+    shim: utils.requireShim
+    paths: utils.createVendorPaths '../vendor'
 
   grunt.initConfig
     #pkg: grunt.file.readJSON 'package.json'
     bowerrc: grunt.file.readJSON '.bowerrc'
+    dirname: __dirname
 
     coffee:
-      other:
-        options:
-          bare: yes
-          sourceMap: yes
-        files:
-          # Requires 'requirejsconfig' to actually work.
-          'static/js/app.configless.js': 'src/app.coffee'
+      options:
+        bare: yes
       compile:
         options:
-          bare: yes
-        files:
-          'static/js/main.js': 'src/main.coffee'
+          sourceMap: yes
+        expand: yes
+        src: ['src/**/*.coffee', '!src/app.coffee']
+        dest: "#{JS_DIR}/"
+        ext: '.js'
+      other:
+        # Requires 'requirejsconfig' to actually work.
+        src: 'src/app.coffee'
+        dest: "#{JS_DIR}/app.configless.js"
 
     jade:
       production:
@@ -49,29 +56,28 @@ module.exports = (grunt) ->
 
     watch:
       scripts:
-        files: ['src/main.coffee']
+        files: ['src/*.coffee', '!src/app.coffee']
         tasks: ['coffee:compile']
       jade:
         files: ['index.jade']
         tasks: ['jade:development']
       less:
-        files: ['styles/style/*.less']
+        files: ['static/style/*.less']
         tasks: ['less:development']
 
     requirejs:
+      options: requireConfig
       compile:
         options:
-          baseUrl: 'static/js'
-          mainConfigFile: 'static/js/app.js'
-          out: 'static/js/app.js'
+          baseUrl: './static/js' # So that the static paths work right.
+          name: './app'
+          out: "./static/js/app.js"
 
     requirejsconfig:
       dev:
         src: "#{JS_DIR}/app.configless.js"
         dest: "#{JS_DIR}/app.js"
-        options:
-          shim: utils.requireShim
-          paths: utils.createVendorPaths '../vendor'
+        options: requireConfig
 
     shell:
       # Make hard links to Bootstrap icon sprites.
@@ -93,6 +99,6 @@ module.exports = (grunt) ->
   grunt.registerTask 'dev-assets', ['jade:development', 'less:development']
   grunt.registerTask 'setup-base', ['compile', 'requirejsconfig', 'shell']
   grunt.registerTask 'setup', ['setup-base', 'dev-assets']
-  grunt.registerTask 'production', ['setup-base', 'prod-assets'] # Also, r.js stuff.
+  grunt.registerTask 'production', ['setup-base', 'prod-assets', 'requirejs']
 
 
