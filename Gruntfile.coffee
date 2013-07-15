@@ -66,6 +66,7 @@ module.exports = (grunt) ->
         tasks: ['less:development']
 
     requirejs:
+      # Use the given config.
       options: requireConfig
       compile:
         options:
@@ -85,8 +86,8 @@ module.exports = (grunt) ->
         command: 'ln <%= bowerrc.directory %>/bootstrap/img/*.png static/img/'
 
   grunt.loadNpmTasks 'grunt-contrib-coffee'
-  grunt.loadNpmTasks 'grunt-contrib-jade'
-  grunt.loadNpmTasks 'grunt-contrib-less' # This mod is actually pretty dang nifty.
+  grunt.loadNpmTasks 'grunt-contrib-jade' # This mod is actually pretty dang nifty.
+  grunt.loadNpmTasks 'grunt-contrib-less'
   grunt.loadNpmTasks 'grunt-contrib-requirejs'
   grunt.loadNpmTasks 'grunt-contrib-watch'
   grunt.loadNpmTasks 'grunt-requirejs-config'

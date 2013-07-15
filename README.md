@@ -19,3 +19,7 @@ npm install && bower install && grunt setup
 npm install && bower install && grunt production
 ```
 
+## What's this `WEB-INF` doing here?
+
+It's so I can use this as a Git subtree in a Java servlet webapp... thing.
+It configures the webapp.
